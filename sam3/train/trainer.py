@@ -936,11 +936,12 @@ class Trainer:
             batch = [batch]
 
         for i, chunked_batch in enumerate(batch):
-            ddp_context = (
-                self.model.no_sync()
-                if i < accum_steps - 1
-                else contextlib.nullcontext()
-            )
+            # Only use no_sync() context for DDP-wrapped models during gradient accumulation
+            # For non-DDP models (single GPU), use nullcontext
+            if i < accum_steps - 1 and isinstance(self.model, nn.parallel.DistributedDataParallel):
+                ddp_context = self.model.no_sync()
+            else:
+                ddp_context = contextlib.nullcontext()
             with ddp_context:
                 with torch.amp.autocast(
                     device_type="cuda",
