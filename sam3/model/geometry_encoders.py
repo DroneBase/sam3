@@ -602,9 +602,20 @@ class SequenceGeometryEncoder(nn.Module):
             grid = points.transpose(0, 1).unsqueeze(2)
             # re normalize to [-1, 1]
             grid = (grid * 2) - 1
-            sampled = torch.nn.functional.grid_sample(
-                img_feats, grid, align_corners=False
-            )
+            # MPS backend has issues with grid_sample on empty tensors
+            # Fallback to CPU for grid_sample if on MPS and tensor might be problematic
+            if img_feats.device.type == 'mps' and (n_points == 0 or bs == 0 or img_feats.numel() == 0):
+                # Handle empty tensor case for MPS
+                sampled = torch.zeros(bs, self.d_model, n_points, 1, device=img_feats.device, dtype=img_feats.dtype)
+            elif img_feats.device.type == 'mps':
+                # Workaround: move to CPU, do grid_sample, move back to MPS
+                sampled = torch.nn.functional.grid_sample(
+                    img_feats.cpu(), grid.cpu(), align_corners=False
+                ).to(img_feats.device)
+            else:
+                sampled = torch.nn.functional.grid_sample(
+                    img_feats, grid, align_corners=False
+                )
             assert list(sampled.shape) == [bs, self.d_model, n_points, 1]
             sampled = sampled.squeeze(-1).permute(2, 0, 1)
             proj = self.points_pool_project(sampled)
@@ -645,7 +656,11 @@ class SequenceGeometryEncoder(nn.Module):
             # We need to denormalize, and convert to [x, y, x, y]
             boxes_xyxy = box_cxcywh_to_xyxy(boxes)
             scale = torch.tensor([W, H, W, H], dtype=boxes_xyxy.dtype)
-            scale = scale.pin_memory().to(device=boxes_xyxy.device, non_blocking=True)
+            # Only pin memory for CUDA, not for MPS or CPU
+            if boxes_xyxy.device.type == "cuda":
+                scale = scale.pin_memory().to(device=boxes_xyxy.device, non_blocking=True)
+            else:
+                scale = scale.to(device=boxes_xyxy.device)
             scale = scale.view(1, 1, 4)
             boxes_xyxy = boxes_xyxy * scale
             sampled = torchvision.ops.roi_align(

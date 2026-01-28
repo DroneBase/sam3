@@ -1,6 +1,8 @@
-include LICENSE
-include README.md
-recursive-include examples *.py
-recursive-include examples *.ipynb
-recursive-include examples *.md
-recursive-include tests *.py
+# Include all YAML configuration files
+recursive-include sam3/train/configs *.yaml
+recursive-include sam3/train/configs *.yml
+# Include any other necessary files
+include sam3/train/*.py
+include sam3/train/pre_exec.sh
+include sam3/train/sam3-sagemaker-requirements.txt
+recursive-include sam3/assets *

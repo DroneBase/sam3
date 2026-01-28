@@ -274,8 +274,10 @@ class TransformerDecoder(nn.Module):
 
             if resolution is not None and stride is not None:
                 feat_size = resolution // stride
+                # Use CPU if CUDA is not available
+                device = "cuda" if torch.cuda.is_available() else "cpu"
                 coords_h, coords_w = self._get_coords(
-                    feat_size, feat_size, device="cuda"
+                    feat_size, feat_size, device=device
                 )
                 self.compilable_cord_cache = (coords_h, coords_w)
                 self.compilable_stored_size = (feat_size, feat_size)
@@ -329,9 +331,18 @@ class TransformerDecoder(nn.Module):
         H, W = feat_size
         boxes_xyxy = box_cxcywh_to_xyxy(reference_boxes).transpose(0, 1)
         bs, num_queries, _ = boxes_xyxy.shape
+        target_device = reference_boxes.device
+        
+        # Check if cache needs to be (re)created or moved to correct device
         if self.compilable_cord_cache is None:
-            self.compilable_cord_cache = self._get_coords(H, W, reference_boxes.device)
+            self.compilable_cord_cache = self._get_coords(H, W, target_device)
             self.compilable_stored_size = (H, W)
+        elif self.compilable_cord_cache[0].device != target_device:
+            # Device changed (e.g., MPS fallback), move cache to correct device
+            self.compilable_cord_cache = (
+                self.compilable_cord_cache[0].to(target_device),
+                self.compilable_cord_cache[1].to(target_device),
+            )
 
         if torch.compiler.is_dynamo_compiling() or self.compilable_stored_size == (
             H,
@@ -342,14 +353,20 @@ class TransformerDecoder(nn.Module):
         else:
             # cache miss, will create compilation issue
             # In case we're not compiling, we'll still rely on the dict-based cache
-            if feat_size not in self.coord_cache:
-                self.coord_cache[feat_size] = self._get_coords(
-                    H, W, reference_boxes.device
+            cache_key = (feat_size, target_device)
+            if cache_key not in self.coord_cache:
+                self.coord_cache[cache_key] = self._get_coords(
+                    H, W, target_device
                 )
-            coords_h, coords_w = self.coord_cache[feat_size]
+            coords_h, coords_w = self.coord_cache[cache_key]
 
             assert coords_h.shape == (H,)
             assert coords_w.shape == (W,)
+
+        # Ensure coords are on the same device as boxes_xyxy
+        if coords_h.device != target_device:
+            coords_h = coords_h.to(target_device)
+            coords_w = coords_w.to(target_device)
 
         deltas_y = coords_h.view(1, -1, 1) - boxes_xyxy.reshape(-1, 1, 4)[:, :, 1:4:2]
         deltas_y = deltas_y.view(bs, num_queries, -1, 2)

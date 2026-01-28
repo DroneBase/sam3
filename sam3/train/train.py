@@ -12,7 +12,7 @@ from copy import deepcopy
 
 import submitit
 import torch
-from hydra import compose, initialize_config_module
+from hydra import compose, initialize_config_module, initialize_config_dir
 from hydra.utils import instantiate
 from iopath.common.file_io import g_pathmgr
 from omegaconf import OmegaConf
@@ -310,14 +310,26 @@ def main(args) -> None:
 
 
 if __name__ == "__main__":
-    initialize_config_module("sam3.train", version_base="1.2")
     parser = ArgumentParser()
     parser.add_argument(
         "-c",
         "--config",
-        required=True,
+        required=False,  # Made optional since we might use --config-path
         type=str,
-        help="path to config file (e.g. configs/roboflow_v100_full_ft_100_images.yaml)",
+        default=None,
+        help="config name (e.g. configs/roboflow_v100_full_ft_100_images.yaml)",
+    )
+    parser.add_argument(
+        "--config-path",
+        type=str,
+        default=None,
+        help="Path to directory containing config file (for Hydra/SageMaker)",
+    )
+    parser.add_argument(
+        "--config-name",
+        type=str,
+        default=None,
+        help="Name of config file without extension (for Hydra/SageMaker)",
     )
     parser.add_argument(
         "--use-cluster",
@@ -334,5 +346,27 @@ if __name__ == "__main__":
     parser.add_argument("--num-nodes", type=int, default=None, help="Number of nodes")
     args = parser.parse_args()
     args.use_cluster = bool(args.use_cluster) if args.use_cluster is not None else None
+    
+    # Determine config directory and name - support multiple methods
+    if args.config_path and args.config_name:
+        # Method 1: Explicit config path (for SageMaker)
+        print(f"Using explicit config path: {args.config_path}/{args.config_name}.yaml")
+        initialize_config_dir(config_dir=args.config_path, version_base="1.2")
+        args.config = args.config_name
+    elif config_dir := os.environ.get("SAM3_CONFIG_DIR"):
+        # Method 2: Environment variable
+        print(f"Using config directory from SAM3_CONFIG_DIR: {config_dir}")
+        initialize_config_dir(config_dir=config_dir, version_base="1.2")
+    else:
+        # Method 3: Package-based config (default for local development)
+        initialize_config_module("sam3.train", version_base="1.2")
+    
+    if not args.config:
+        raise ValueError("Either --config or (--config-path and --config-name) must be provided")
+    
     register_omegaconf_resolvers()
     main(args)
+
+"""
+python sam3/train/train.py -c configs/solar_anomaly/solar_anomaly_finetune_local
+"""

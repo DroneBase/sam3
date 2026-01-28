@@ -1,7 +1,6 @@
 [build-system]
 requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
-
 [project]
 name = "sam3"
 dynamic = ["version"]
@@ -34,7 +33,6 @@ dependencies = [
     "typing_extensions",
     "huggingface_hub",
 ]
-
 [project.optional-dependencies]
 dev = [
     "pytest",
@@ -77,43 +75,33 @@ train = [
     "scikit-image",
     "scikit-learn",
 ]
-
 [project.urls]
 "Homepage" = "https://github.com/facebookresearch/sam3"
 "Bug Tracker" = "https://github.com/facebookresearch/sam3/issues"
-
 [tool.setuptools.packages.find]
 include = ["sam3*"]
 exclude = ["build*", "scripts*", "examples*"]
-
 [tool.setuptools.package-data]
-sam3 = ["assets/*.txt.gz"]
-
+sam3 = ["assets/*.txt.gz", "train/configs/**/*.yaml", "*.yaml", "*.yml", "*.json", "*.txt", "*.sh"]
 [tool.setuptools.dynamic]
 version = {attr = "sam3.__version__"}
-
 [tool.black]
 line-length = 88
 target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
-
 [tool.isort]
 profile = "black"
 multi_line_output = 3
-
 [tool.usort]
 first_party_detection = false
-
 [tool.ufmt]
 formatter = "ruff-api"
-
 [tool.mypy]
 python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
-
 [[tool.mypy.overrides]]
 module = [
     "torch.*",
@@ -127,7 +115,6 @@ module = [
     "iopath.*",
 ]
 ignore_missing_imports = true
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"

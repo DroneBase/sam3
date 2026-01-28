@@ -14,6 +14,7 @@ from sam3.model.data_misc import interpolate
 from sam3.train.loss.sigmoid_focal_loss import (
     triton_sigmoid_focal_loss,
     triton_sigmoid_focal_loss_reduce,
+    TRITON_AVAILABLE,
 )
 from torch import nn
 
@@ -147,9 +148,11 @@ def sigmoid_focal_loss(
     Returns:
         Loss tensor
     """
-    if not (0 <= alpha <= 1) and triton:
+    # Use triton only if requested AND available (TRITON_AVAILABLE handles GPU capability check)
+    use_triton = triton and TRITON_AVAILABLE
+    if not (0 <= alpha <= 1) and use_triton:
         raise RuntimeError(f"Alpha should be in [0,1], got {alpha}")
-    if triton:
+    if use_triton:
         if reduce and not loss_on_multimask:
             loss = triton_sigmoid_focal_loss_reduce(inputs, targets, alpha, gamma)
             return loss / (num_boxes * inputs.shape[1])

@@ -291,6 +291,8 @@ class Trainer:
         if accelerator == "cuda":
             self.device = torch.device("cuda", self.local_rank)
             torch.cuda.set_device(self.local_rank)
+        elif accelerator == "mps":
+            self.device = torch.device("mps")
         elif accelerator == "cpu":
             self.device = torch.device("cpu")
         else:
@@ -298,6 +300,12 @@ class Trainer:
 
     def _setup_ddp_distributed_training(self, distributed_conf, accelerator):
         assert isinstance(self.model, torch.nn.Module)
+
+        # Skip DDP for MPS device or single-process training (world_size=1)
+        world_size = int(os.environ.get("WORLD_SIZE", 1))
+        if accelerator == "mps" or world_size == 1:
+            logging.info(f"Skipping DDP setup (accelerator={accelerator}, world_size={world_size})")
+            return
 
         self.model = nn.parallel.DistributedDataParallel(
             self.model,
