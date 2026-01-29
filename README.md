@@ -128,7 +128,7 @@ touch .env
 Then open the file and add your Hugging Face token:
 
 ```
-HF_TOKEN=hf_xxxxxxxxxxxx  # Replace `hf_xxxxxxxxxxxx` with your actual Hugging Face access token.
+HF_TOKEN=hf_xxxxx  # Replace `hf_xxxxx` with your actual Hugging Face access token.
 ```
 Save the file.
 
@@ -139,7 +139,8 @@ aws sso login
 
 #### Now run the fine-tune script
 ```bash
-python sam3/train/fine_tune_sam3_sagemaker_det.py --config sam3/train/configs/solar_anomaly/solar_anomaly_finetune_sagemaker.yaml
+python sam3/train/fine_tune_sam3_sagemaker_det.py \
+--config sam3/train/configs/solar_anomaly/solar_anomaly_finetune_sagemaker.yaml
 ```
 
 - configs are in sam3/train/configs
