@@ -1,18 +1,25 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
-# Script to convert Pascal VOC annotations to COCO JSON format for SAM3 training
-
 """
 Pascal VOC to COCO JSON Converter for SAM3 Training
 
 This script converts Pascal VOC XML annotations to COCO JSON format
 required by SAM3 training pipeline.
 
-Usage:
-python scripts/convert_voc_to_coco.py \
-    --voc_dir /Users/sayandebroy/Developer/zeitview/datasets/solar_anomaly_detection/normalized_images/hotspot_small/train \
-    --output_json /Users/sayandebroy/Developer/zeitview/datasets/solar_anomaly_detection/normalized_images/hotspot_small/train/_annotations_coco.json
+Example Dataset Structure:
+Assumes the following directory structure:
+voc_dir/
+    train/ or test/
+        images/
+            img1.jpg
+            img2.jpg
+            ...
+        annotations/
+            img1.xml
+            img2.xml
+            ...
+            ...
 
-python convert_voc_to_coco.py --voc_dir /Users/sayandebroy/Developer/zeitview/datasets/solar_anomaly_detection/normalized_images/hotspot_small/test --output_json /Users/sayandebroy/Developer/zeitview/datasets/solar_anomaly_detection/normalized_images/hotspot_small/test/_annotations_coco.json
+Usage:
+python scripts/convert_voc_to_coco.py --voc_dir /voc_dataset/train --output_json /voc_dataset/train/annotations_coco.json
 """
 
 import argparse

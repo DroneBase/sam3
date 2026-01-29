@@ -13,16 +13,18 @@ defaults:
 # ============================================================================
 sagemaker:
   # S3 URI for training data (should contain images/ and _annotations_coco.json)
-  train_data_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/sam3_test/hotspot_small/train
-  
+  #train_data_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/sam3_test/hotspot_small/train
+  train_data_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/anomaly_hotspot_and_diode_failures_tiled_rgb_v0/train/
+
   # S3 URI for validation/test data
-  val_data_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/sam3_test/hotspot_small/test
-  
+  #val_data_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/sam3_test/hotspot_small/test
+  val_data_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/anomaly_hotspot_and_diode_failures_tiled_rgb_v0/test/
+
   # S3 URI for pretrained model checkpoint (optional)
   pretrained_checkpoint_uri: null  # e.g., s3://bucket/checkpoints/sam3_pretrained.pth
   
   # S3 URI where training outputs (checkpoints, logs) will be uploaded
-  output_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/sam3_test/artifacts/
+  output_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/sam3_test/artifacts_hotspot_and_diode/
   
   # S3 URI for BPE tokenizer file (optional - recommended for reliability)
   # Upload sam3/assets/bpe_simple_vocab_16e6.txt.gz to S3 and set this URI
@@ -218,7 +220,7 @@ scratch:
   # Training parameters - optimized for SageMaker GPU instances
   num_train_workers: 8  # SageMaker instances have more CPU cores
   num_val_workers: 4
-  max_data_epochs: 30
+  max_data_epochs: 5
   target_epoch_size: 5000
   hybrid_repeats: 1
   context_length: 2
@@ -236,8 +238,8 @@ scratch:
   scheduler_cooldown: 20
 
   # Batch sizes - can increase for larger GPU instances
-  val_batch_size: 2
-  train_batch_size: 2  # Increase to 4 or 8 for g5.2xlarge and above
+  val_batch_size: 4
+  train_batch_size: 8  # Increase to 4 or 8 for g5.2xlarge and above
   
   collate_fn_val:
     _target_: sam3.train.data.collator.collate_fn_api
