@@ -155,7 +155,16 @@ python sam3/train/eval_sam3_sagemaker_segmentation.py \
 
 
 
-### 8. Example Notebooks
+### 8. SAM3 Inference script on AWS-Sagemaker
+```bash
+python sam3/train/infer_sam3_sagemaker_segmentation.py \
+        --config sam3/train/configs/solar_array/solar_array_seg_inference_sagemaker.yaml \
+        --checkpoint-uri s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/artifacts_3/checkpoints/checkpoint_30.pt \
+        --images-uri s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/anomaly_panel_offline_albatross_tiled_norm_v0_vlm/valid/ \
+        --output-uri s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/infer/
+```
+
+### 9. Example Notebooks
 
 The `example_notebooks` directory contains notebooks demonstrating how to use SAM3 with
 various types of prompts:
@@ -175,7 +184,7 @@ various types of prompts:
   Shows a few examples from SA-Co video evaluation set.
 
 #### TODO:
-- Inference Script. [local + sagemaker]
+- Review Train and Eval metrics.
 - Remove unnecessary files and folders.
 - Distribution Training.
 - .github

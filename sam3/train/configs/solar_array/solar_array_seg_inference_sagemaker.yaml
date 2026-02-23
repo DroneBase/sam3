@@ -1,0 +1,115 @@
+# @package _global_
+# ============================================================================
+# SAM3 Inference Configuration for Solar Array Segmentation
+# SageMaker-compatible version
+#
+# Usage:
+#   python sam3/train/infer_sam3_sagemaker_segmentation.py \
+#       --config sam3/train/configs/solar_array/solar_array_seg_inference_sagemaker.yaml
+#
+# With overrides:
+#   python sam3/train/infer_sam3_sagemaker_segmentation.py \
+#       --config sam3/train/configs/solar_array/solar_array_seg_inference_sagemaker.yaml \
+#       --checkpoint-uri s3://bucket/checkpoints/best.pt \
+#       --images-uri s3://bucket/images/ \
+#       --output-uri s3://bucket/results/
+# ============================================================================
+
+# ============================================================================
+# SageMaker Configuration - S3 Data URIs
+# ============================================================================
+sagemaker:
+  # S3 URI (or local path) for the folder of images to run inference on.
+  # Should contain image files (.jpg, .jpeg, .png, .bmp, .tiff, .tif)
+  images_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/anomaly_panel_offline_albatross_tiled_norm_v0_vlm/valid/
+
+  # S3 URI (or local path) to the fine-tuned checkpoint.
+  pretrained_checkpoint_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/artifacts_3/checkpoints/checkpoint_30.pt
+
+  # S3 URI (or local path) where inference outputs will be saved:
+  #   - predictions.json          (detection coordinates, scores, labels)
+  #   - masks/                    (per-image binary mask PNGs)
+  #   - overlays/                 (per-image overlay visualizations)
+  output_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/infer_2/
+
+  # S3 URI for BPE tokenizer file
+  bpe_s3_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/bpe_simple_vocab_16e6.txt.gz
+
+# ============================================================================
+# WandB (Weights & Biases) Configuration
+# ============================================================================
+wandb:
+  enabled: false
+  project: sam3-solar-array-segmentation
+  entity: zeitview
+  run_name: null
+  tags:
+    - sam3
+    - sagemaker
+    - solar-array
+    - segmentation
+    - inference
+  notes: "SAM3 inference for solar array segmentation"
+
+# ============================================================================
+# Paths Configuration - Local paths on SageMaker instance
+# ============================================================================
+paths:
+  # Local directory where images will be downloaded to
+  images_dir: /tmp/solar_array_inference/images
+
+  # Local directory where outputs will be written before S3 upload
+  output_dir: /tmp/solar_array_inference/output
+
+  # BPE tokenizer path (included in the codebase)
+  bpe_path: sam3/assets/bpe_simple_vocab_16e6.txt.gz
+
+  # Checkpoint path — will be set by the script after S3 download
+  checkpoint_path: null
+
+# ============================================================================
+# Inference Configuration
+# ============================================================================
+inference:
+  # Text prompt(s) to use for detection/segmentation.
+  # Each prompt is run independently; results are merged per image.
+  # Use a list for multi-class detection (e.g., ["solar panel", "hotspot"]).
+  text_prompts:
+    - "solar array"
+
+  # Confidence threshold for detections (0.0-1.0)
+  confidence_threshold: 0.3
+
+  # Image resolution for model input (must match training resolution / RoPE embeddings)
+  resolution: 1008
+
+  # Batch size for inference (number of images processed at once)
+  batch_size: 1
+
+  # Whether to save binary segmentation mask PNGs (one per image, all instances merged)
+  save_masks: true
+
+  # Whether to save per-instance mask PNGs (individual mask for each detection)
+  save_instance_masks: false
+
+  # Whether to save overlay visualizations (image + masks + bboxes)
+  save_overlays: true
+
+  # Overlay opacity for mask visualization (0.0–1.0)
+  overlay_alpha: 0.5
+
+  # Whether to enable segmentation head (set false for bbox-only inference)
+  enable_segmentation: true
+
+  # Normalization parameters (must match training)
+  norm_mean: [0.5, 0.5, 0.5]
+  norm_std: [0.5, 0.5, 0.5]
+
+  # Image file extensions to look for
+  image_extensions:
+    - ".jpg"
+    - ".jpeg"
+    - ".png"
+    - ".bmp"
+    - ".tiff"
+    - ".tif"
