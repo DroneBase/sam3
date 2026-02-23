@@ -144,6 +144,10 @@ logs/
 runs/
 tensorboard/
 
+# Training artifacts and eval results
+sam3/train/artifacts*/
+sam3/train/eval_results*/
+
 # OS specific
 .DS_Store
 Thumbs.db

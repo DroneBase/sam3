@@ -20,10 +20,11 @@ sagemaker:
   # S3 URI to the fine-tuned checkpoint to evaluate
   # This should point to the best checkpoint from training, e.g.:
   #   s3://zeitview-aiml-research-artifacts/solar/.../artifacts/checkpoints/detection_segm_AP_0.50_0.95.pt
-  pretrained_checkpoint_uri: null  # REQUIRED — set this to your trained checkpoint S3 URI
+  #pretrained_checkpoint_uri: null  # REQUIRED — set this to your trained checkpoint S3 URI
+  pretrained_checkpoint_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/artifacts_3/checkpoints/checkpoint_30.pt  # REQUIRED — set this to your trained checkpoint S3 URI
 
   # S3 URI where evaluation outputs (metrics, predictions) will be uploaded
-  output_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/eval_results/
+  output_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/sam3_test/eval_results_3/
 
   # S3 URI for BPE tokenizer file
   bpe_s3_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/bpe_simple_vocab_16e6.txt.gz

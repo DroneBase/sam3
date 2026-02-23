@@ -524,27 +524,53 @@ def _create_sam3_transformer(has_presence_token: bool = True) -> TransformerWrap
 
 
 def _load_checkpoint(model, checkpoint_path):
-    """Load model checkpoint from file."""
+    """Load model checkpoint from file.
+
+    Supports two checkpoint formats:
+      1. Full SAM3 model checkpoint (e.g. from HuggingFace) — keys have a
+         ``detector.`` prefix that is stripped before loading into Sam3Image.
+      2. Trainer-saved Sam3Image checkpoint — keys already match the
+         Sam3Image state_dict (no ``detector.`` prefix).
+    """
     with g_pathmgr.open(checkpoint_path, "rb") as f:
         ckpt = torch.load(f, map_location="cpu", weights_only=True)
     if "model" in ckpt and isinstance(ckpt["model"], dict):
         ckpt = ckpt["model"]
-    sam3_image_ckpt = {
-        k.replace("detector.", ""): v for k, v in ckpt.items() if "detector" in k
-    }
-    if model.inst_interactive_predictor is not None:
-        sam3_image_ckpt.update(
-            {
-                k.replace("tracker.", "inst_interactive_predictor.model."): v
-                for k, v in ckpt.items()
-                if "tracker" in k
-            }
-        )
-    missing_keys, _ = model.load_state_dict(sam3_image_ckpt, strict=False)
-    if len(missing_keys) > 0:
+
+    # Detect checkpoint format by checking for "detector." prefixed keys
+    has_detector_keys = any(k.startswith("detector.") for k in ckpt.keys())
+
+    if has_detector_keys:
+        # Full SAM3 checkpoint (HuggingFace format): extract detector keys
+        sam3_image_ckpt = {
+            k.replace("detector.", "", 1): v
+            for k, v in ckpt.items()
+            if k.startswith("detector.")
+        }
+        if model.inst_interactive_predictor is not None:
+            sam3_image_ckpt.update(
+                {
+                    k.replace("tracker.", "inst_interactive_predictor.model.", 1): v
+                    for k, v in ckpt.items()
+                    if k.startswith("tracker.")
+                }
+            )
+    else:
+        # Trainer-saved checkpoint: keys already match Sam3Image state_dict
+        sam3_image_ckpt = ckpt
+
+    missing_keys, unexpected_keys = model.load_state_dict(
+        sam3_image_ckpt, strict=False
+    )
+    if missing_keys:
         print(
             f"loaded {checkpoint_path} and found "
-            f"missing and/or unexpected keys:\n{missing_keys=}"
+            f"missing keys:\n{missing_keys}"
+        )
+    if unexpected_keys:
+        print(
+            f"loaded {checkpoint_path} and found "
+            f"unexpected keys:\n{unexpected_keys}"
         )
 
 

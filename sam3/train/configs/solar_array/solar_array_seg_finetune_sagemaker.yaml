@@ -21,7 +21,7 @@ sagemaker:
   pretrained_checkpoint_uri: null  # e.g., s3://bucket/checkpoints/sam3_pretrained.pth
 
   # S3 URI where training outputs (checkpoints, logs) will be uploaded
-  output_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/artifacts_2/
+  output_uri: s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/artifacts_3/
 
   # S3 URI for BPE tokenizer file (optional - recommended for reliability)
   # Upload sam3/assets/bpe_simple_vocab_16e6.txt.gz to S3 and set this URI

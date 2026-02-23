@@ -6,10 +6,10 @@ decorator. It downloads test data and a fine-tuned checkpoint from S3, runs eval
 (bbox + segmentation AP), and uploads results back to S3.
 
 Usage:
-    python sam3/train/eval_sam3_sagemaker_seg.py --config sam3/train/configs/solar_array/solar_array_seg_eval_sagemaker.yaml
+    python sam3/train/eval_sam3_sagemaker_segmentation.py --config sam3/train/configs/solar_array/solar_array_seg_eval_sagemaker.yaml
 
 # With a specific checkpoint:
-python sam3/train/eval_sam3_sagemaker_seg.py \
+python sam3/train/eval_sam3_sagemaker_segmentation.py \
     --config sam3/train/configs/solar_array/solar_array_seg_eval_sagemaker.yaml \
     --checkpoint-uri s3://zeitview-aiml-research-artifacts/solar/ir_hotspot_and_diode_failure_detection_v1/datasets/solar_array_mini_v0/artifacts_1/checkpoints/checkpoint_30.pt
 """

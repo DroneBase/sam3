@@ -147,7 +147,15 @@ python sam3/train/fine_tune_sam3_sagemaker_det.py \
 
 
 
-### 7. Example Notebooks
+### 7. Evaluate SAM3 on AWS-Sagemaker
+```bash
+python sam3/train/eval_sam3_sagemaker_segmentation.py \
+--config sam3/train/configs/solar_anomaly/solar_array_seg_eval_sagemaker.yaml
+```
+
+
+
+### 8. Example Notebooks
 
 The `example_notebooks` directory contains notebooks demonstrating how to use SAM3 with
 various types of prompts:
@@ -167,7 +175,6 @@ various types of prompts:
   Shows a few examples from SA-Co video evaluation set.
 
 #### TODO:
-- Evaluation Script. [local + sagemaker]
 - Inference Script. [local + sagemaker]
 - Remove unnecessary files and folders.
 - Distribution Training.
