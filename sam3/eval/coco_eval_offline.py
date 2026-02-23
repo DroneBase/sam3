@@ -146,6 +146,24 @@ class CocoEvaluatorOfflineWithPredFileEvaluators:
         logging.info("OfflineCoco evaluator: Loading groundtruth")
         self.gt = COCO(self.gt_path)
 
+        # Guard against empty prediction files (e.g. when all detections are
+        # filtered out by the detection_threshold).  pycocotools crashes with
+        # ``IndexError: list index out of range`` inside ``loadRes`` when the
+        # predictions list is empty.
+        import json
+
+        with open(str(dumped_file), "r") as _f:
+            _preds = json.load(_f)
+        if len(_preds) == 0:
+            logging.warning(
+                f"Coco evaluator: Prediction file {dumped_file} is empty — "
+                f"returning zero metrics for iou_type={self.iou_type}"
+            )
+            outs = {}
+            for i, metric_name in enumerate(COCO_METRICS):
+                outs[f"coco_eval_{self.iou_type}_{metric_name}"] = 0.0
+            return outs
+
         # Creating the result file
         logging.info("Coco evaluator: Creating the result file")
         cocoDt = self.gt.loadRes(str(dumped_file))
